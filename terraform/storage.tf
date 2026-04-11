@@ -1,4 +1,30 @@
 
+resource "kubernetes_namespace" "postgres_instances" {
+  metadata {
+    name = "postgres-instances"
+  }
+  depends_on = [module.eks]
+}
+
+resource "kubernetes_namespace" "mongodb_instances" {
+  metadata {
+    name = "mongodb-instances"
+  }
+  depends_on = [module.eks]
+}
+
+resource "kubernetes_annotations" "gp2_default" {
+  api_version = "storage.k8s.io/v1"
+  kind        = "StorageClass"
+  metadata {
+    name = "gp2"
+  }
+  annotations = {
+    "storageclass.kubernetes.io/is-default-class" = "true"
+  }
+  depends_on = [module.eks]
+}
+
 resource "kubernetes_storage_class" "gp3" {
   metadata {
     name = "gp3"

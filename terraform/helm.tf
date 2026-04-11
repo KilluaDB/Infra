@@ -6,31 +6,31 @@ resource "helm_release" "aws_lbc" {
   namespace  = "kube-system"
   version    = "1.8.1"
 
-  set = [{
+  set {
     name  = "clusterName"
     value = module.eks.cluster_name
-    },
-    {
+  }
+  set {
     name  = "serviceAccount.create"
     value = "true"
-    },
-    {
+  }
+  set {
     name  = "serviceAccount.name"
     value = "aws-load-balancer-controller"
-    },
-    {
+  }
+  set {
     name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
     value = module.alb_controller_irsa.iam_role_arn
-    },
-    {
+  }
+  set {
     name  = "region"
     value = var.aws_region
-    },
-    {
+  }
+  set {
     name  = "vpcId"
     value = module.vpc.vpc_id
-    }
-  ]
+  }
+
   depends_on = [module.eks]
 }
 
@@ -46,6 +46,21 @@ resource "helm_release" "cnpg" {
   depends_on = [module.eks]
 }
 
+resource "helm_release" "cert_manager" {
+  name             = "cert-manager"
+  repository       = "https://charts.jetstack.io"
+  chart            = "cert-manager"
+  namespace        = "cert-manager"
+  version          = "1.15.0"
+  create_namespace = true
+
+  set {
+    name  = "installCRDs"
+    value = "true"
+  }
+
+  depends_on = [module.eks]
+}
 
 resource "helm_release" "mongodb_operator" {
   name       = "community-operator"
@@ -56,10 +71,10 @@ resource "helm_release" "mongodb_operator" {
 
   create_namespace = true
 
-  set =[{
+  set {
     name  = "operator.watchNamespace"
-    value = "default"
+    value = "mongodb-instances"
   }
-  ]
-  depends_on = [module.eks]
+
+  depends_on = [module.eks, helm_release.cert_manager, kubernetes_namespace.mongodb_instances]
 }

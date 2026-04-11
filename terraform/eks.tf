@@ -42,7 +42,7 @@ module "eks" {
       name = "${local.name}-nodes"
 
       instance_types = [var.node_instance_type]
-      ami_type       = "AL2_x86_64"
+      ami_type       = "AL2023_x86_64_STANDARD"
 
       min_size     = var.node_min_size
       max_size     = var.node_max_size
